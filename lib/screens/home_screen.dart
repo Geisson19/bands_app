@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Dismissible(
       key: Key(band.id),
       direction: DismissDirection.startToEnd,
-      onDismissed: (direction) {
+      onDismissed: (DismissDirection direction) {
         print("direction: $direction");
         print('id ${band.id}');
         //TODO delete band BACKEND
