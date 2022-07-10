@@ -7,9 +7,9 @@ class Band {
 
   factory Band.fromJson(Map<String, dynamic> json) {
     return Band(
-      id: json['id'],
-      name: json['name'],
-      votes: json['votes'],
+      id: json['id'] ?? 'not-id',
+      name: json['name'] ?? 'not-name',
+      votes: json['votes'] ?? 0,
     );
   }
 

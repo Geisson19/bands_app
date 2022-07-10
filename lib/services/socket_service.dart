@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 enum ServerStatus {
   online,
@@ -10,11 +10,11 @@ enum ServerStatus {
 class SocketService with ChangeNotifier {
   ServerStatus _serverStatus = ServerStatus.connecting;
 
-  late IO.Socket _client;
+  late io.Socket _client;
 
   ServerStatus get serverStatus => _serverStatus;
 
-  IO.Socket get client => _client;
+  io.Socket get client => _client;
 
   SocketService() {
     _initConfig();
@@ -22,7 +22,7 @@ class SocketService with ChangeNotifier {
 
   void _initConfig() {
     // Dart client
-    _client = IO.io('http://localhost:3001', {
+    _client = io.io('http://localhost:3001', {
       'transports': ['websocket'],
       'autoConnect': true,
     });

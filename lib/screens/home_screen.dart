@@ -24,6 +24,22 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
+  void initState() {
+    final socket = Provider.of<SocketService>(context, listen: false);
+    socket.client.on('bands', (data) {
+      print(data);
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    final socket = Provider.of<SocketService>(context, listen: false);
+    socket.client.off('bands');
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final serverSocket = Provider.of<SocketService>(context);
     final serverStatus = serverSocket.serverStatus;
