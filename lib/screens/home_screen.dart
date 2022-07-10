@@ -4,6 +4,7 @@ import 'package:bands_app/services/socket_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bands_app/models/models.dart';
+import 'package:pie_chart/pie_chart.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,19 +18,22 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Band> bands = [
-    Band(id: "1", name: "Metalica", votes: 5),
-    Band(id: "2", name: "Queen", votes: 3),
-    Band(id: "3", name: "Angeles del infierno", votes: 2),
-    Band(id: "4", name: "Bon Jovi", votes: 5),
+    // Band(id: "1", name: "Metalica", votes: 5),
+    // Band(id: "2", name: "Queen", votes: 3),
+    // Band(id: "3", name: "Angeles del infierno", votes: 2),
+    // Band(id: "4", name: "Bon Jovi", votes: 5),
   ];
 
   @override
   void initState() {
     final socket = Provider.of<SocketService>(context, listen: false);
-    socket.client.on('bands', (data) {
-      print(data);
-    });
+    socket.client.on('bands', _handleActiveBands);
     super.initState();
+  }
+
+  _handleActiveBands(payload) {
+    bands = (payload as List).map((band) => Band.fromJson(band)).toList();
+    setState(() {});
   }
 
   @override
@@ -62,9 +66,16 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
-      body: ListView.builder(
-        itemCount: bands.length,
-        itemBuilder: (_, i) => _bandTile(bands[i]),
+      body: Column(
+        children: [
+          _showBandsPieChart(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: bands.length,
+              itemBuilder: (_, i) => _bandTile(bands[i]),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         elevation: 1,
@@ -75,13 +86,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _bandTile(Band band) {
+    final SocketService socketService =
+        Provider.of<SocketService>(context, listen: false);
     return Dismissible(
       key: Key(band.id),
       direction: DismissDirection.startToEnd,
       onDismissed: (DismissDirection direction) {
-        print("direction: $direction");
-        print('id ${band.id}');
-        //TODO delete band BACKEND
+        socketService.client.emit('delete-band', {'id': band.id});
       },
       background: Container(
         padding: const EdgeInsets.only(left: 40),
@@ -102,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         onTap: () {
-          print(band.name);
+          socketService.client.emit('vote-band', {'id': band.id});
         },
       ),
     );
@@ -158,14 +169,64 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   addBandtoList(String name) {
+    final SocketService socketService =
+        Provider.of<SocketService>(context, listen: false);
     if (name.isNotEmpty) {
       // Agregar
-      bands.add(Band(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          name: name,
-          votes: 0));
-      setState(() {});
+      socketService.client.emit('add-band', {'name': name});
     }
     Navigator.pop(context);
+  }
+
+  Widget _showBandsPieChart() {
+    Map<String, double> dataMap = {};
+
+    for (Band band in bands) {
+      dataMap[band.name] = band.votes.toDouble();
+    }
+
+    return dataMap.isEmpty
+        ? Container()
+        : Container(
+            margin: const EdgeInsets.symmetric(vertical: 20),
+            child: pieChart(dataMap));
+    //return PieChart(dataMap: dataMap);
+  }
+
+  PieChart pieChart(Map<String, double> dataMap) {
+    final colorList = [
+      Colors.lightBlue,
+      Colors.lightGreen,
+      Colors.limeAccent,
+      Colors.pinkAccent,
+      Colors.purpleAccent,
+      Colors.redAccent,
+      Colors.yellowAccent,
+      Colors.orangeAccent,
+      Colors.greenAccent,
+    ];
+    return PieChart(
+        dataMap: dataMap,
+        animationDuration: const Duration(milliseconds: 800),
+        chartRadius: MediaQuery.of(context).size.width / 2.5,
+        initialAngleInDegree: 0,
+        colorList: colorList,
+        chartType: ChartType.ring,
+        ringStrokeWidth: 32,
+        legendOptions: const LegendOptions(
+          showLegendsInRow: false,
+          showLegends: true,
+          legendTextStyle: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        chartValuesOptions: const ChartValuesOptions(
+          showChartValueBackground: false,
+          showChartValues: true,
+          showChartValuesInPercentage: false,
+          showChartValuesOutside: false,
+          decimalPlaces: 0,
+        )
+        // gradientList: ---To add gradient colors---
+        // emptyColorGradient: ---Empty Color gradient---
+        );
   }
 }

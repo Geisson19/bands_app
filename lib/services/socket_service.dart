@@ -22,7 +22,7 @@ class SocketService with ChangeNotifier {
 
   void _initConfig() {
     // Dart client
-    _client = io.io('http://localhost:3001', {
+    _client = io.io('https://bands-api-sockets.herokuapp.com/', {
       'transports': ['websocket'],
       'autoConnect': true,
     });

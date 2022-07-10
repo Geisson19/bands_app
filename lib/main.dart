@@ -23,7 +23,7 @@ class BandApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Band App',
-        initialRoute: StatusScreen.routeName,
+        initialRoute: HomeScreen.routeName,
         routes: {
           HomeScreen.routeName: (context) => const HomeScreen(),
           StatusScreen.routeName: (context) => const StatusScreen(),
